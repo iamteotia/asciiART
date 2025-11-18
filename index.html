@@ -564,6 +564,7 @@
               <p class="panel-label">Step 1 · choose file & tune density</p>
             </div>
 
+            <!-- Label explicitly bound to input for reliable click behaviour -->
             <label class="upload-area" for="fileInput">
               <input id="fileInput" class="upload-input" type="file" accept="image/*" />
               <div class="upload-icon">↑</div>
@@ -590,6 +591,10 @@
                   <option value="smooth">Smooth gradient ( #$@&%*+=-:. )</option>
                   <option value="blocks">Blocky pixels (██▓▒░ )</option>
                   <option value="minimal">Minimal dots ( .,:;i1tfLCG0)</option>
+                  <option value="jp_katakana">Japanese katakana (ｱｲｳｴｵｶｷｸｹｺ)</option>
+                  <option value="jp_mixed">JP mixed (アイウエオカキクケコ・ー〇)</option>
+                  <option value="fullwidth_latin">Full‑width Latin (ＡＢＣＤＥＦＧＨＩＪ)</option>
+                  <option value="box_drawing">Box drawing (─│┼┌┐└┘█)</option>
                 </select>
                 <span class="select-caret">▾</span>
               </div>
@@ -668,7 +673,11 @@
       dense: "MW@#&8%B@$",
       smooth: "#$@&%*+=-:. ",
       blocks: "██▓▒░ ",
-      minimal: ".,:;i1tfLCG0"
+      minimal: ".,:;i1tfLCG0",
+      jp_katakana: "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ",
+      jp_mixed: "アイウエオカキクケコサシスセソナニヌネノ・ー〇",
+      fullwidth_latin: "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ",
+      box_drawing: " ░▒▓█─│┌┐└┘┼"
     };
 
     let img = null;
@@ -690,7 +699,12 @@
       }
     });
 
-    // Fixed: removed the manual click handler that was preventing file input from working
+    // Let clicking the label open the file picker (handled by 'for' attribute).
+    // This handler only resets the value so re-uploading the same file works.
+    fileInput.addEventListener("click", (e) => {
+      e.target.value = null;
+    });
+
     fileInput.addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
@@ -704,7 +718,7 @@
           lastHeight = image.height;
           metaSize.textContent = "Dimensions: " + image.width + " × " + image.height;
           statusText.classList.remove("muted");
-          statusText.textContent = "Image loaded. Click "Convert to color ASCII".";
+          statusText.textContent = "Image loaded. Click \"Convert to color ASCII\".";
           emptyState.style.display = "flex";
           ctx.clearRect(0, 0, asciiCanvas.width, asciiCanvas.height);
           downloadBtn.disabled = true;
@@ -712,11 +726,6 @@
         image.src = ev.target.result;
       };
       reader.readAsDataURL(file);
-    });
-
-    // Reset file input value on click to allow re-uploading same file
-    fileInput.addEventListener("click", (e) => {
-      e.target.value = null;
     });
 
     convertBtn.addEventListener("click", () => {
@@ -778,7 +787,7 @@
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "#050308";
       ctx.fillRect(0, 0, w, h);
-      ctx.font = fontSize + "px 'JetBrains Mono', ui-monospace, monospace";
+      ctx.font = fontSize + "px 'JetBrains Mono', 'Noto Sans JP', system-ui, ui-monospace, monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
@@ -800,11 +809,8 @@
             continue;
           }
 
-          const brightness =
-            0.299 * r + 0.587 * g + 0.114 * b;
-          const charIndex = Math.floor(
-            ((255 - brightness) / 255) * (numChars - 1)
-          );
+          const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+          const charIndex = Math.floor(((255 - brightness) / 255) * (numChars - 1));
           const ch = asciiChars[charIndex] || " ";
 
           ctx.fillStyle = "rgba(" + r + "," + g + "," + b + ",1)";
