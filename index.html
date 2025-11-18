@@ -564,7 +564,7 @@
               <p class="panel-label">Step 1 · choose file & tune density</p>
             </div>
 
-            <label class="upload-area">
+            <label class="upload-area" for="fileInput">
               <input id="fileInput" class="upload-input" type="file" accept="image/*" />
               <div class="upload-icon">↑</div>
               <div class="upload-title">Drop image here or click to browse</div>
@@ -690,10 +690,7 @@
       }
     });
 
-    document
-      .querySelector(".upload-area")
-      .addEventListener("click", () => fileInput.click());
-
+    // Fixed: removed the manual click handler that was preventing file input from working
     fileInput.addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
@@ -707,7 +704,7 @@
           lastHeight = image.height;
           metaSize.textContent = "Dimensions: " + image.width + " × " + image.height;
           statusText.classList.remove("muted");
-          statusText.textContent = "Image loaded. Click “Convert to color ASCII”.";
+          statusText.textContent = "Image loaded. Click "Convert to color ASCII".";
           emptyState.style.display = "flex";
           ctx.clearRect(0, 0, asciiCanvas.width, asciiCanvas.height);
           downloadBtn.disabled = true;
@@ -715,6 +712,11 @@
         image.src = ev.target.result;
       };
       reader.readAsDataURL(file);
+    });
+
+    // Reset file input value on click to allow re-uploading same file
+    fileInput.addEventListener("click", (e) => {
+      e.target.value = null;
     });
 
     convertBtn.addEventListener("click", () => {
